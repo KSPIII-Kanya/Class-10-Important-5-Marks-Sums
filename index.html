@@ -563,7 +563,7 @@
         // 3. Update 'type' to 'local', 'src' to 'videos/filename.mp4', and 'thumb' to 'images/filename.jpg'.
         
         const videos = [
-            { id: 1, title: "உறவுகளும் சார்புகளும் (Relations & Functions)", description: "இந்த பாடத்தில் முக்கிய கருத்துக்களை எளிமையாக கற்கலாம்.", type: "youtube", src: "https://ksukalike-my.sharepoint.com/:v:/g/personal/rishikesh_r_kalike_org/IQBKeBWYOLkwQoeapb18Xsw-Af7Ze9o35sgHtWbSuRLbfuw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=4cvuAA", thumb: null, duration: "13 mins" },
+            { id: 1, title: "உறவுகளும் சார்புகளும் (Relations & Functions)", description: "இந்த பாடத்தில் முக்கிய கருத்துக்களை எளிமையாக கற்கலாம்.", type: "onedrive", src: "https://ksukalike-my.sharepoint.com/:v:/g/personal/rishikesh_r_kalike_org/IQBKeBWYOLkwQoeapb18Xsw-Af7Ze9o35sgHtWbSuRLbfuw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=4cvuAA", thumb: null, duration: "13 mins" },
             { id: 2, title: "எண்களும் தொடர்வரிசைகளும் (Numbers & Sequences)", description: "இந்த பாடத்தில் முக்கிய கருத்துக்களை எளிமையாக கற்கலாம்.", type: "youtube", src: "h-3XWpTqKco", thumb: null, duration: "20 min" },
             { id: 3, title: "இயற்கணிதம் - பகுதி 1 (Algebra Part 1)", description: "இந்த பாடத்தில் முக்கிய கருத்துக்களை எளிமையாக கற்கலாம்.", type: "youtube", src: "h-3XWpTqKco", thumb: null, duration: "25 min" },
             { id: 4, title: "இயற்கணிதம் - பகுதி 2 (Algebra Part 2)", description: "இந்த பாடத்தில் முக்கிய கருத்துக்களை எளிமையாக கற்கலாம்.", type: "youtube", src: "h-3XWpTqKco", thumb: null, duration: "18 min" },
@@ -743,6 +743,16 @@
                 videoTag.style.width = '100%';
                 videoTag.style.height = '100%';
                 wrapper.appendChild(videoTag);
+            } else if (video.type === 'onedrive') {
+                // Handle OneDrive / SharePoint Share Links
+                // Creates a generic iframe. Note: Link must support embedding (Permissions: Anyone)
+                const iframe = document.createElement('iframe');
+                iframe.src = video.src;
+                iframe.allow = "autoplay; encrypted-media; fullscreen";
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.border = 'none';
+                wrapper.appendChild(iframe);
             }
             
             modal.classList.add('active');
@@ -853,4 +863,3 @@
     </script>
 </body>
 </html>
-
