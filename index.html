@@ -16,9 +16,9 @@
 
     <style>
         :root {
-            --primary-color: #4a148c;
+            --primary-color: #4a148c; /* Deep Purple */
             --primary-gradient: linear-gradient(135deg, #4a148c 0%, #7c43bd 100%);
-            --secondary-color: #ffca28;
+            --secondary-color: #ffca28; /* Amber Accent */
             --text-dark: #1a1a1a;
             --text-gray: #555555;
             --text-light: #ffffff;
@@ -156,6 +156,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Chapters List
         const chapters = [
             { id: 1, name: "இயல் 1. உறவுகளும் சார்புகளும்" },
             { id: 2, name: "இயல் 2. எண்களும் தொடர்வரிசைகளும்" },
@@ -165,9 +166,11 @@
             { id: 8, name: "இயல் 8: புள்ளியியலும் நிகழ்தகவும்" }
         ];
 
+        // Highlight Style Configuration
         const textHighlightStyle = "color: #e91e63; font-weight: 800;";
         const creatorText = `<br><br><span style="${textHighlightStyle}">உருவாக்கியவர்: ப. கோமதி B.Sc.,B. Ed.,(கணிதவியல்)</span>`;
 
+        // Video Data Store
         const videos = [
             { id: 1, chapter: 1, title: "உறவுகளும் சார்புகளும்", desc: `<span style="${textHighlightStyle}">எடுத்துக்காட்டு 1.11</span>${creatorText}`, type: "google", src: "13BumpuyMTovO7o-3xbpIzXfTXSZzC3kS" },
             // Chapter 2
@@ -184,10 +187,51 @@
             { id: 9, chapter: 5, title: "ஆயத்தொலை வடிவியல் - பகுதி 1", desc: `<span style="${textHighlightStyle}">பயிற்சி 5.1 கணக்கு எண் 1(i ,ii )</span>${creatorText}`, type: "google", src: "1MN1uCR-vWE2PdRpMvqRxIqWdzOJTHHlY" },
             { id: 10, chapter: 5, title: "ஆயத்தொலை வடிவியல் - பகுதி 2", desc: `<span style="${textHighlightStyle}">எடுத்துக்காட்டு 5.5</span>${creatorText}`, type: "google", src: "1JNJujXrRDVe_yV7bZkKlR5B7RZZTDErn" },
             // Chapter 8
-            { id: 11, chapter: 8, title: "புள்ளியியலும் நிகழ்தகவும்", desc: `<span style="${textHighlightStyle}">பயிற்சி 5.1</span>${creatorText}`, type: "google", src: "1FMWXPBTVVs3vB5eea-NkTHLRRtsjXQIn" }
+            { id: 11, chapter: 8, title: "புள்ளியியலும் நிகழ்தகவும்", desc: `<span style="${textHighlightStyle}">பயிற்சி 8.x</span>${creatorText}`, type: "google", src: "1FMWXPBTVVs3vB5eea-NkTHLRRtsjXQIn" }
         ];
 
         let activeChapterId = 1;
+
+        // UI Handlers
+        window.toggleChapter = (id) => {
+            activeChapterId = (activeChapterId === id) ? null : id;
+            renderApp();
+        };
+
+        window.playVideo = (id) => {
+            const v = videos.find(item => item.id === id);
+            const modal = document.getElementById('videoModal');
+            const wrapper = document.getElementById('videoWrapper');
+            modal.classList.add('active');
+            wrapper.innerHTML = '<div class="loading-spinner">ஏற்றுகிறது...</div>';
+            
+            let url = v.type === 'youtube' 
+                ? `https://www.youtube.com/embed/${v.src}?autoplay=1&mute=0&playsinline=1` 
+                : `https://drive.google.com/file/d/${v.src}/preview?autoplay=1`;
+
+            // Timeout to allow DOM transition before injecting iframe
+            setTimeout(() => {
+                const iframe = document.createElement('iframe');
+                iframe.style.width = "100%"; iframe.style.height = "100%"; iframe.style.border = "none";
+                iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+                iframe.src = url;
+                
+                // Clear and Append
+                wrapper.innerHTML = '';
+                wrapper.appendChild(iframe);
+            }, 300);
+        };
+
+        window.closeModal = () => {
+            document.getElementById('videoModal').classList.remove('active');
+            document.getElementById('videoWrapper').innerHTML = '';
+        };
+
+        function getThumb(v) {
+            return v.type === 'youtube' 
+                ? `https://img.youtube.com/vi/${v.src}/hqdefault.jpg`
+                : `https://drive.google.com/thumbnail?id=${v.src}&sz=w300`;
+        }
 
         function renderApp() {
             const list = document.getElementById('chapterList');
@@ -218,66 +262,30 @@
             }).join('');
         }
 
-        function getThumb(v) {
-            return v.type === 'youtube' 
-                ? `https://img.youtube.com/vi/${v.src}/hqdefault.jpg`
-                : `https://drive.google.com/thumbnail?id=${v.src}&sz=w300`;
-        }
-
-        window.toggleChapter = (id) => {
-            activeChapterId = (activeChapterId === id) ? null : id;
-            renderApp();
-        };
-
-        window.playVideo = (id) => {
-            const v = videos.find(item => item.id === id);
-            const modal = document.getElementById('videoModal');
-            const wrapper = document.getElementById('videoWrapper');
-            modal.classList.add('active');
-            wrapper.innerHTML = '<div class="loading-spinner">ஏற்றுகிறது...</div>';
-            
-            let url = v.type === 'youtube' 
-                ? `https://www.youtube.com/embed/${v.src}?autoplay=1&mute=0&playsinline=1` 
-                : `https://drive.google.com/file/d/${v.src}/preview?autoplay=1`;
-
-            setTimeout(() => {
-                const iframe = document.createElement('iframe');
-                iframe.style.width = "100%"; iframe.style.height = "100%"; iframe.style.border = "none";
-                iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-                iframe.src = url;
-                wrapper.innerHTML = '';
-                wrapper.appendChild(iframe);
-            }, 200);
-        };
-
-        window.closeModal = () => {
-            document.getElementById('videoModal').classList.remove('active');
-            document.getElementById('videoWrapper').innerHTML = '';
-        };
-
+        // Firebase Stats Core Logic
         async function initStats() {
             try {
-                if (typeof __firebase_config === 'undefined') return;
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
                 const config = JSON.parse(__firebase_config);
                 const app = initializeApp(config);
                 const auth = getAuth(app);
                 const db = getFirestore(app);
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'kanya-math-global';
 
-                const startAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                };
+                // Initial Auth - Essential for Firestore Permissions
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
-                await startAuth();
-
+                // Listen for Auth Completion before doing DB Ops
                 onAuthStateChanged(auth, async (user) => {
                     if (!user) return;
+                    
                     const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_stats');
 
+                    // Global Stats Observer
                     onSnapshot(statsRef, (snap) => {
                         if(snap.exists()) {
                             const data = snap.data();
@@ -288,13 +296,15 @@
                             document.getElementById('visitorCount').innerText = "0";
                             document.getElementById('hoursSpent').innerText = "0.0";
                         }
-                    }, (err) => console.log("Stats fail", err));
+                    }, (err) => console.log("Stats Fail (Observer):", err));
 
-                    if(!localStorage.getItem('kanya_global_visitor_v2')) {
-                        localStorage.setItem('kanya_global_visitor_v2', 'true');
+                    // Unique Visitor Tracking per Browser
+                    if(!localStorage.getItem('kanya_global_visitor_v3')) {
+                        localStorage.setItem('kanya_global_visitor_v3', 'active');
                         await setDoc(statsRef, { visitor_count: increment(1) }, { merge: true });
                     }
 
+                    // Global usage heart-beat (increment total minutes)
                     setInterval(async () => {
                         if(document.visibilityState === 'visible' && auth.currentUser) {
                             try {
@@ -306,9 +316,10 @@
                     }, 60000);
                 });
 
-            } catch(e) { console.error("Stats Init Error:", e); }
+            } catch(e) { console.error("Firebase Init Error:", e); }
         }
 
+        // Initialize UI and Backend
         renderApp();
         initStats();
     </script>
