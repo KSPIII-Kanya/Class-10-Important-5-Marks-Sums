@@ -108,7 +108,7 @@
         .modal.active { display: flex; }
 
         .video-container { width: 100%; max-width: 900px; aspect-ratio: 16/9; background: black; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; }
-        /* Loader removed to show player immediately */
+        /* No loading spinner needed for direct iframe injection */
         
         .stop-btn { margin-top: 25px; background: #ff5252; color: white; border: none; padding: 12px 40px; border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(255, 82, 82, 0.3); }
 
@@ -214,7 +214,7 @@
             iframe.style.width = "100%"; 
             iframe.style.height = "100%"; 
             iframe.style.border = "none";
-            // Allow attributes are critical for the player to work when clicked
+            // Allow attributes for user-initiated play
             iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
             iframe.src = url;
             
@@ -263,7 +263,12 @@
 
         async function initStats() {
             try {
-                if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
+                // Check if Firebase config is available (runs in Canvas, but not on GitHub unless keys are added)
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    console.log("Firebase config missing - Global stats require backend.");
+                    return;
+                }
+
                 const config = JSON.parse(__firebase_config);
                 const app = initializeApp(config);
                 const auth = getAuth(app);
@@ -293,11 +298,14 @@
                         }
                     }, (err) => console.log("Stats Fail:", err));
 
+                    // Use localStorage ONLY to identify if this device is new
+                    // The actual counting happens in the Cloud (Firebase)
                     if(!localStorage.getItem('kanya_global_visitor_v3')) {
                         localStorage.setItem('kanya_global_visitor_v3', 'active');
                         await setDoc(statsRef, { visitor_count: increment(1) }, { merge: true });
                     }
 
+                    // Global usage heart-beat (increment total minutes)
                     setInterval(async () => {
                         if(document.visibilityState === 'visible' && auth.currentUser) {
                             try {
