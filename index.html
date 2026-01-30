@@ -42,7 +42,7 @@
         header {
             background: var(--primary-gradient);
             color: var(--text-light);
-            padding: 20px 10px 50px 10px;
+            padding: 20px 10px 40px 10px;
             text-align: center;
             border-bottom-left-radius: 40px;
             border-bottom-right-radius: 40px;
@@ -59,36 +59,11 @@
         .header-separator { color: rgba(255,255,255,0.6); font-size: 1.2rem; }
         .header-subject { font-size: clamp(1rem, 4vw, 1.4rem); font-weight: 800; text-transform: uppercase; color: #fff; }
 
-        .stats-dashboard {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: -35px auto 30px;
-            padding: 0 15px;
-            position: relative;
-            z-index: 20;
-            max-width: 600px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 12px 20px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            text-align: center;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stat-value { font-size: 1.3rem; font-weight: 800; color: var(--primary-color); }
-        .stat-label { font-size: 0.75rem; color: var(--text-gray); font-weight: 600; margin-top: 5px; }
-
-        .chapter-container { max-width: 800px; margin: 20px auto; padding: 0 15px 50px; }
-        .chapter-item { background: white; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .chapter-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: white; user-select: none; }
-        .chapter-header.active { border-bottom: 1px solid #eee; background: #fdfbff; }
+        .chapter-container { max-width: 800px; margin: -20px auto 20px; padding: 0 15px 50px; position: relative; z-index: 20; }
+        .chapter-item { background: white; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
+        .chapter-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: white; user-select: none; transition: background 0.2s; }
+        .chapter-header:active { background: #fdfbff; }
+        .chapter-header.active { border-bottom: 1px solid #f0f0f0; background: #fdfbff; }
         .chapter-title { font-size: 1rem; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
         .arrow-icon { transition: transform 0.3s; color: #ccc; }
         .chapter-header.active .arrow-icon { transform: rotate(180deg); color: var(--primary-color); }
@@ -108,7 +83,6 @@
         .modal.active { display: flex; }
 
         .video-container { width: 100%; max-width: 900px; aspect-ratio: 16/9; background: black; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; }
-        /* No loading spinner needed for direct iframe injection */
         
         .stop-btn { margin-top: 25px; background: #ff5252; color: white; border: none; padding: 12px 40px; border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(255, 82, 82, 0.3); }
 
@@ -129,17 +103,6 @@
         </div>
     </header>
 
-    <div class="stats-dashboard">
-        <div class="stat-card">
-            <div class="stat-value" id="visitorCount">...</div>
-            <div class="stat-label">மாணவர்கள் (Students)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="hoursSpent">...</div>
-            <div class="stat-label">மொத்த மணிநேரம் (Hours)</div>
-        </div>
-    </div>
-
     <div class="chapter-container" id="chapterList"></div>
 
     <div class="modal" id="videoModal">
@@ -154,8 +117,27 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+
+        // Firebase Configuration provided by user
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDyN8VFxrHrefi1gbidXI-S70r4r2KUpg",
+            authDomain: "kspiiikanya-class105marks.firebaseapp.com",
+            projectId: "kspiiikanya-class105marks",
+            storageBucket: "kspiiikanya-class105marks.firebasestorage.app",
+            messagingSenderId: "649867003673",
+            appId: "1:649867003673:web:da72b3ec35a084ec3be788",
+            measurementId: "G-4ZRVFDE1NY"
+        };
+
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+            console.log("Firebase Analytics Initialized");
+        } catch (error) {
+            console.error("Error initializing Firebase Analytics:", error);
+        }
 
         const chapters = [
             { id: 1, name: "இயல் 1. உறவுகளும் சார்புகளும்" },
@@ -261,67 +243,7 @@
             }).join('');
         }
 
-        async function initStats() {
-            try {
-                // Check if Firebase config is available (runs in Canvas, but not on GitHub unless keys are added)
-                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
-                    console.log("Firebase config missing - Global stats require backend.");
-                    return;
-                }
-
-                const config = JSON.parse(__firebase_config);
-                const app = initializeApp(config);
-                const auth = getAuth(app);
-                const db = getFirestore(app);
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kanya-math-global';
-
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (!user) return;
-                    
-                    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_stats');
-
-                    onSnapshot(statsRef, (snap) => {
-                        if(snap.exists()) {
-                            const data = snap.data();
-                            document.getElementById('visitorCount').innerText = (data.visitor_count || 0).toLocaleString();
-                            const hours = (data.total_minutes || 0) / 60;
-                            document.getElementById('hoursSpent').innerText = hours.toFixed(1);
-                        } else {
-                            document.getElementById('visitorCount').innerText = "0";
-                            document.getElementById('hoursSpent').innerText = "0.0";
-                        }
-                    }, (err) => console.log("Stats Fail:", err));
-
-                    // Use localStorage ONLY to identify if this device is new
-                    // The actual counting happens in the Cloud (Firebase)
-                    if(!localStorage.getItem('kanya_global_visitor_v3')) {
-                        localStorage.setItem('kanya_global_visitor_v3', 'active');
-                        await setDoc(statsRef, { visitor_count: increment(1) }, { merge: true });
-                    }
-
-                    // Global usage heart-beat (increment total minutes)
-                    setInterval(async () => {
-                        if(document.visibilityState === 'visible' && auth.currentUser) {
-                            try {
-                                await updateDoc(statsRef, { total_minutes: increment(1) });
-                            } catch(e) {
-                                await setDoc(statsRef, { total_minutes: increment(1) }, { merge: true });
-                            }
-                        }
-                    }, 60000);
-                });
-
-            } catch(e) { console.error("Firebase Error:", e); }
-        }
-
         renderApp();
-        initStats();
     </script>
 </body>
 </html>
