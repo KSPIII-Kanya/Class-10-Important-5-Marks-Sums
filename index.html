@@ -56,6 +56,7 @@
         .header-sub { font-size: clamp(0.7rem, 2.5vw, 1rem); font-weight: 800; margin-bottom: 12px; color: rgba(255, 255, 255, 0.95); }
         .header-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); padding: 8px 15px; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.3); margin-top: 10px; white-space: nowrap; }
         .header-class { font-size: clamp(0.9rem, 3.5vw, 1.2rem); font-weight: 800; color: var(--secondary-color); }
+        .header-separator { color: rgba(255,255,255,0.6); font-size: 1.2rem; }
         .header-subject { font-size: clamp(1rem, 4vw, 1.4rem); font-weight: 800; text-transform: uppercase; color: #fff; }
 
         .stats-dashboard {
@@ -107,8 +108,8 @@
         .modal.active { display: flex; }
 
         .video-container { width: 100%; max-width: 900px; aspect-ratio: 16/9; background: black; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; }
-        .loading-spinner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: 600; }
-
+        /* Loader removed to show player immediately */
+        
         .stop-btn { margin-top: 25px; background: #ff5252; color: white; border: none; padding: 12px 40px; border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(255, 82, 82, 0.3); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -143,7 +144,7 @@
 
     <div class="modal" id="videoModal">
         <div class="video-container" id="videoWrapper">
-            <div class="loading-spinner">ஏற்றுகிறது...</div>
+            <!-- Video Player will load here -->
         </div>
         <button class="stop-btn" onclick="closeModal()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
@@ -156,7 +157,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Chapters List
         const chapters = [
             { id: 1, name: "இயல் 1. உறவுகளும் சார்புகளும்" },
             { id: 2, name: "இயல் 2. எண்களும் தொடர்வரிசைகளும்" },
@@ -166,33 +166,25 @@
             { id: 8, name: "இயல் 8: புள்ளியியலும் நிகழ்தகவும்" }
         ];
 
-        // Highlight Style Configuration
         const textHighlightStyle = "color: #e91e63; font-weight: 800;";
         const creatorText = `<br><br><span style="${textHighlightStyle}">உருவாக்கியவர்: ப. கோமதி B.Sc.,B. Ed.,(கணிதவியல்)</span>`;
 
-        // Video Data Store
         const videos = [
             { id: 1, chapter: 1, title: "உறவுகளும் சார்புகளும்", desc: `<span style="${textHighlightStyle}">எடுத்துக்காட்டு 1.11</span>${creatorText}`, type: "google", src: "13BumpuyMTovO7o-3xbpIzXfTXSZzC3kS" },
-            // Chapter 2
             { id: 2, chapter: 2, title: "எண்களும் தொடர்வரிசைகளும் - பகுதி 1", desc: `<span style="${textHighlightStyle}">பயிற்சி 2.9</span>${creatorText}`, type: "google", src: "1Pr7e3fR-upUz_4n_JUYaOE6cUbkXG8Rl" },
             { id: 3, chapter: 2, title: "எண்களும் தொடர்வரிசைகளும் - பகுதி 2", desc: `<span style="${textHighlightStyle}">பயிற்சி 2.9</span>${creatorText}`, type: "google", src: "1rPMrQiy1SgjfjzbHTxdfP6JGjr0B_yjp" },
-            // Chapter 3
             { id: 4, chapter: 3, title: "இயற்கணிதம் - பகுதி 1", desc: `<span style="${textHighlightStyle}">பயிற்சி 3.19 கணக்கு 8</span>${creatorText}`, type: "google", src: "1gzuFgiMrMFArxURLFhdSaEuHbFkoczS3" },
             { id: 5, chapter: 3, title: "இயற்கணிதம் - பகுதி 2", desc: `<span style="${textHighlightStyle}">பயிற்சி 3.19 கணக்கு 12</span>${creatorText}`, type: "google", src: "1G_qrhy3PtieOb6ZSpKx7dew_d596WX2a" },
             { id: 6, chapter: 3, title: "இயற்கணிதம் - பகுதி 3", desc: `<span style="${textHighlightStyle}">பயிற்சி 3.19 கணக்கு 13</span>${creatorText}`, type: "google", src: "1GQSEhIgpHtsQIqbgSOviFAVHK2RWbUsj" },
-            // Chapter 4
             { id: 7, chapter: 4, title: "வடிவியல் - பகுதி 1", desc: `<span style="${textHighlightStyle}">தேல்ஸ் தேற்றம்</span>${creatorText}`, type: "google", src: "12h5X529Or5vMmhs18BZaC7oFpZ8F3ADv" },
             { id: 8, chapter: 4, title: "வடிவியல் - பகுதி 2", desc: `<span style="${textHighlightStyle}">பிதாகரஸ் தேற்றம்</span>${creatorText}`, type: "google", src: "1aPgFL7DmihdusQJdbcYu7kkc0oUiWrWw" },
-            // Chapter 5
             { id: 9, chapter: 5, title: "ஆயத்தொலை வடிவியல் - பகுதி 1", desc: `<span style="${textHighlightStyle}">பயிற்சி 5.1 கணக்கு எண் 1(i ,ii )</span>${creatorText}`, type: "google", src: "1MN1uCR-vWE2PdRpMvqRxIqWdzOJTHHlY" },
             { id: 10, chapter: 5, title: "ஆயத்தொலை வடிவியல் - பகுதி 2", desc: `<span style="${textHighlightStyle}">எடுத்துக்காட்டு 5.5</span>${creatorText}`, type: "google", src: "1JNJujXrRDVe_yV7bZkKlR5B7RZZTDErn" },
-            // Chapter 8
             { id: 11, chapter: 8, title: "புள்ளியியலும் நிகழ்தகவும்", desc: `<span style="${textHighlightStyle}">பயிற்சி 8.x</span>${creatorText}`, type: "google", src: "1FMWXPBTVVs3vB5eea-NkTHLRRtsjXQIn" }
         ];
 
         let activeChapterId = 1;
 
-        // UI Handlers
         window.toggleChapter = (id) => {
             activeChapterId = (activeChapterId === id) ? null : id;
             renderApp();
@@ -202,24 +194,25 @@
             const v = videos.find(item => item.id === id);
             const modal = document.getElementById('videoModal');
             const wrapper = document.getElementById('videoWrapper');
-            modal.classList.add('active');
-            wrapper.innerHTML = '<div class="loading-spinner">ஏற்றுகிறது...</div>';
             
-            let url = v.type === 'youtube' 
-                ? `https://www.youtube.com/embed/${v.src}?autoplay=1&mute=0&playsinline=1` 
-                : `https://drive.google.com/file/d/${v.src}/preview?autoplay=1`;
+            modal.classList.add('active');
+            wrapper.innerHTML = ''; // Clear previous content immediately
 
-            // Timeout to allow DOM transition before injecting iframe
-            setTimeout(() => {
-                const iframe = document.createElement('iframe');
-                iframe.style.width = "100%"; iframe.style.height = "100%"; iframe.style.border = "none";
-                iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-                iframe.src = url;
-                
-                // Clear and Append
-                wrapper.innerHTML = '';
-                wrapper.appendChild(iframe);
-            }, 300);
+            // Prepare URL without autoplay
+            let url = v.type === 'youtube' 
+                ? `https://www.youtube.com/embed/${v.src}?rel=0&playsinline=1&modestbranding=1` 
+                : `https://drive.google.com/file/d/${v.src}/preview`;
+
+            // Create iframe immediately without timeout
+            const iframe = document.createElement('iframe');
+            iframe.style.width = "100%"; 
+            iframe.style.height = "100%"; 
+            iframe.style.border = "none";
+            // Allow attributes are critical for the player to work when clicked
+            iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+            iframe.src = url;
+            
+            wrapper.appendChild(iframe);
         };
 
         window.closeModal = () => {
@@ -253,7 +246,7 @@
                                         <div class="video-name">${v.title}</div>
                                         <div class="video-meta">${v.desc}</div>
                                     </div>
-                                    ▶
+                                    <!-- Clean card: no extra text buttons -->
                                 </div>
                             `).join('') : '<div style="padding:15px; font-size:0.85rem; color:#888; text-align:center;">இந்த இயலுக்கான காணொளிகள் விரைவில் வரும்...</div>'}
                         </div>
@@ -262,7 +255,6 @@
             }).join('');
         }
 
-        // Firebase Stats Core Logic
         async function initStats() {
             try {
                 if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
@@ -272,20 +264,17 @@
                 const db = getFirestore(app);
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'kanya-math-global';
 
-                // Initial Auth - Essential for Firestore Permissions
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
 
-                // Listen for Auth Completion before doing DB Ops
                 onAuthStateChanged(auth, async (user) => {
                     if (!user) return;
                     
                     const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_stats');
 
-                    // Global Stats Observer
                     onSnapshot(statsRef, (snap) => {
                         if(snap.exists()) {
                             const data = snap.data();
@@ -296,15 +285,13 @@
                             document.getElementById('visitorCount').innerText = "0";
                             document.getElementById('hoursSpent').innerText = "0.0";
                         }
-                    }, (err) => console.log("Stats Fail (Observer):", err));
+                    }, (err) => console.log("Stats Fail:", err));
 
-                    // Unique Visitor Tracking per Browser
                     if(!localStorage.getItem('kanya_global_visitor_v3')) {
                         localStorage.setItem('kanya_global_visitor_v3', 'active');
                         await setDoc(statsRef, { visitor_count: increment(1) }, { merge: true });
                     }
 
-                    // Global usage heart-beat (increment total minutes)
                     setInterval(async () => {
                         if(document.visibilityState === 'visible' && auth.currentUser) {
                             try {
@@ -316,10 +303,9 @@
                     }, 60000);
                 });
 
-            } catch(e) { console.error("Firebase Init Error:", e); }
+            } catch(e) { console.error("Firebase Error:", e); }
         }
 
-        // Initialize UI and Backend
         renderApp();
         initStats();
     </script>
